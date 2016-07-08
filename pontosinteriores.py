@@ -42,11 +42,11 @@ class PrimalDualPF(object):
         self.s = np.array(s) 
         (m,n) = self.A.shape
         self.mu = np.dot(self.x,self.s)/n
+        self.gamma = 1e-2
         
     def update(self):
         (m,n) = self.A.shape
         self.mu = np.dot(self.x,self.s)/n
-        file.write(str(self.mu)+'\n')
         #Calculando a matriz Jacobiana
         J1 = np.concatenate( 
         (np.zeros((n,n)), np.transpose(self.A), np.eye(n)),axis=1)
@@ -82,8 +82,9 @@ class PrimalDualPF(object):
             novox = self.x + alpha*px
             novow = self.w + alpha*pw
             novos = self.s + alpha*ps 
-            if validacao(novox) and validacao(novos):
-                # se (x_k+1,s_k+1) > 0, tudo bem
+            const = self.gamma*self.mu
+            if validacao(novox,const) and validacao(novos,const):
+                # se (x_k+1,s_k+1) > gamma*mu, tudo bem
                 backtracking = False
             else:
                 # senão, diminuímos o tamanho do passo
@@ -108,11 +109,11 @@ class PrimalDualPF(object):
     def solution(self):
         return (self.x,self.w,self.s)
             
-def validacao(vector):
-    '''Verifica se cada entrada de um dado vetor é positiva.'''
+def validacao(vector,constante):
+    '''Verifica se cada entrada de um dado vetor é maior que a constante.'''
     test = True
     for x in vector:
-        if x <= 0:
+        if x <= constante:
             test = False
             break
     return test
@@ -130,20 +131,15 @@ w = [1, 3]
 #for k in range(1,10):
 #    problema = PrimalDualPF(A,b,c,x,w,s)
 #    problema.solve(SIGMA=1/k,MAXSTEPS=200)
-#    print('sigma:', 1/k,';','mu:', problema.mu)
-file = open('mu.txt','w+')
-problema = PrimalDualPF(A,b,c,x,w,s) 
-problema.solve(SIGMA=.1)
+#    print('sigma:', 1/k,';','mu:', problema.mu) 
 import matplotlib.pyplot as plt
-
-sigmas = [i/10 for i in range(9,0,-1)]
-TOTAL_ITERATIONS = 10
+ 
+TOTAL_ITERATIONS = 25
 for i in range(1,TOTAL_ITERATIONS):
     sigma = i/TOTAL_ITERATIONS
     problema = PrimalDualPF(A,b,c,x,w,s) 
     problema.solve(SIGMA=sigma)
-    plt.plot(problema.caminho[0],problema.caminho[1],'b',alpha=0.1+sigma,
+    plt.plot(problema.caminho[0],problema.caminho[1],'b',alpha=1-sigma,
              hold=True)
 
-plt.show()
-file.close() 
+plt.show() 

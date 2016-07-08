@@ -1,0 +1,47 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath,amssymb,amsfonts}  
+\begin{document}
+\begin{eqnarray*} \min & \begin{bmatrix}
+  -2 & -5\\
+\end{bmatrix}x \\\text{s. a.} &\begin{bmatrix}
+  1 & 2 & 1 & 0\\
+  2 & 1 & 0 & 1\\
+\end{bmatrix}x = \begin{bmatrix}
+  16\\
+  12\\
+\end{bmatrix}\end{eqnarray*}
+\par 
+\par Problema tem base, vamos começar a pivotar.
+\[\begin{bmatrix}
+  1. & 2. & 1. & 0. & 16.\\
+  2. & 1. & 0. & 1. & 12.\\
+  2. & 5. & 0. & 0. & 0.\\
+\end{bmatrix}\]
+\par Pivotando na linha 1 e coluna 2.
+\[\begin{bmatrix}
+  0.5 & 1. & 0.5 & 0. & 8.\\
+  2. & 1. & 0. & 1. & 12.\\
+  2. & 5. & 0. & 0. & 0.\\
+\end{bmatrix}\]
+\[\begin{bmatrix}
+  0.5 & 1. & 0.5 & 0. & 8.\\
+  1.5 & 0. & -0.5 & 1. & 4.\\
+  2. & 5. & 0. & 0. & 0.\\
+\end{bmatrix}\]
+\[\begin{bmatrix}
+  0.5 & 1. & 0.5 & 0. & 8.\\
+  1.5 & 0. & -0.5 & 1. & 4.\\
+  -0.5 & 0. & -2.5 & 0. & -40.\\
+\end{bmatrix}\]
+\[\begin{bmatrix}
+  0.5 & 1. & 0.5 & 0. & 8.\\
+  1.5 & 0. & -0.5 & 1. & 4.\\
+  -0.5 & 0. & -2.5 & 0. & -40.\\
+\end{bmatrix}\]
+\par Solução x =
+\[\begin{bmatrix}
+  0. & 8. & 0. & 4. & 0. & 0.\\
+\end{bmatrix}\]
+\end{document}
