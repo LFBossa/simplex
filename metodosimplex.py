@@ -131,9 +131,9 @@ lfbossa@gmail.com, 2016
             if self.base[j] == False:
                 # para cada entrada False da base, adicionamos o vetor da 
                 # base canonica faltante
-                self.tableau[0:m,n-1+j] = basecanonica(j,m)
-                self.artificiais.append(n-1+j)
-                self.base[j] = n-1+j       
+                self.tableau[0:m,n+j] = basecanonica(j,m)
+                self.artificiais.append(n+j)
+                self.base[j] = n+j       
         self._output('Iniciando a fase 1.','[m]fase1') 
         self.tableau[m,n:n+a] = -np.ones(a)
         self._output(self.tableau,'[m]custorelarti')
@@ -146,8 +146,8 @@ lfbossa@gmail.com, 2016
         self.run()  
         # começamos supondo que nenhuma variável aritificial está na base
         self.deletar = []
-        for k in self.artificiais:
-            if k in self.base: 
+        for k in self.base:
+            if k in self.artificiais: 
                 # se alguma das variáveis artificiais pertencer a base
                 i = self.base.index(k)
                 if self.tableau[i,-1] != 0:
@@ -161,13 +161,17 @@ lfbossa@gmail.com, 2016
         # se o método acima não conseguir remover a variável artificial 
         # da base, significa que temos uma linha de zeros, que pode ser
         # eliminada 
-        if len(self.deletar)>0:
+        if len(self.deletar)>0: 
             self.tableau = np.delete(self.tableau, self.deletar,axis=0)
     
     def fase2(self): 
         '''Método para rodar a fase 2 do simplex.'''
         self._output('Iniciando a fase 2.','[m]fase2')
-        (m,n) = self.A.shape 
+        (M,N) = self.tableau.shape 
+        # aqui eu me ferrei muito até aprender que poderia ter acontecido de
+        # termos eliminado linhas do tableau devido a variáveis artificiais 
+        # na base no final da fase 1.
+        m = M - 1 #esse é o índice correto
         # primeiro, apagamos as coluas das variáveis artificiais
         self.tableau = np.delete(self.tableau, self.artificiais,axis=1)
         self.tableau[m,0:len(self.c)] = -self.c
@@ -184,12 +188,13 @@ lfbossa@gmail.com, 2016
         
     def run(self):
         '''Roda a parte do pivotamento usado em cada fase do simplex.'''
-        (m,n) = self.tableau.shape
-        maximo = self.tableau[m-1,0:n-1].max()
+        (M,N) = self.tableau.shape
+        # usamos M,N maiúsuculos para o tamanho do tableau
+        maximo = self.tableau[M-1,0:N-1].max()
         # enquanto o  maior elemento da ultima linha for maior que zero, 
         # continua pivotando
         while  maximo > 0:
-            quemEntra = self.tableau[m-1,0:n-1].argmax()   
+            quemEntra = self.tableau[M-1,0:N-1].argmax()   
             # indice do maior elemento da ultima linha do tableau
             quemSai = self.quem_sai_da_base(quemEntra)  
             # decide tem sai da base
@@ -200,14 +205,16 @@ lfbossa@gmail.com, 2016
             self.pivotar(quemSai,quemEntra)               
             # pivota na linha e coluna indicadas
             self._output(self.tableau,'[m]run')
-            maximo = self.tableau[m-1,0:n-1].max()       
+            maximo = self.tableau[M-1,0:N-1].max()       
             # procura um novo cara pra entrar na base 
     
     def quem_sai_da_base(self,k):        
         '''Dado que x_k entra na base, essa função determina quem sai da base.'''
-        (m,n) = self.tableau.shape
+        (M,N) = self.tableau.shape
+        # usando M,N maiúsculos para o tamanho do tableau para não confundir
+        # com m,n tamanho da matriz A
         j = -1 
-        I = [i for i in range(m-1) if self.tableau[i,k] > 0] 
+        I = [i for i in range(M-1) if self.tableau[i,k] > 0] 
         if len(I) == 0:
             # se y_k <= 0, o problema é ilimitado
             raise ProblemaIlimitado()
@@ -224,7 +231,7 @@ lfbossa@gmail.com, 2016
             razoes = np.array([self.tableau[i,j]/self.tableau[i,k] for i in I])
             razaominima = razoes.min()
             I = [I[i] for i in range(razoes.size) if razoes[i] == razaominima] 
-            if j == n-1:
+            if j == N-1:
                 # caso I_j contenha mais do que 1 elemento para todo j de 1 a n, 
                 # temos que o tableau tem pelo menos duas linhas l.d. 
                 raise LinhasLD(I) 
@@ -232,11 +239,11 @@ lfbossa@gmail.com, 2016
     
     def pivotar(self,i,j): 
         '''Pivota o tableau na linha i e coluna j.'''
-        (m,n) = self.tableau.shape 
+        (M,N) = self.tableau.shape 
         self.tableau[i,:] = self.tableau[i,:]/self.tableau[i,j] 
         # Divide a linha i pelo pivo 
         self._output(self.tableau,'linhaipelopivo')
-        for k in range(m):
+        for k in range(M):
             if k != i:
                 self.tableau[k,:] = self.tableau[k,:] - self.tableau[k,j]*self.tableau[i,:]  
                 # Faz as eliminações nas outras linhas
@@ -247,23 +254,33 @@ lfbossa@gmail.com, 2016
     def retirar_artificial_da_base(self,coluna):
         '''Tenta retirar a variável artificial da base. Se não conseguir,
         inclui ela na lista para eliminação.'''
-        linha = self.base.index(coluna)
+        linha = self.base.index(coluna) 
         (m,n) = self.A.shape
-        naobasicas = [x for x in range(m+n) if x not in self.base]
-        # guarda os índices das colunas das variáveis não-básicas
+        naobasicas = [x for x in range(n) if x not in self.base]
+        # guarda os índices das colunas das variáveis não-básicas 
+        # não-artificiais
         colunas = [j for j in naobasicas if self.tableau[linha,j] > 0]
         if len(colunas) > 0:
             # se existir alguém maior que zero para podermos pivotar
             self.base[linha] = colunas[0]
+            msg = "Retirando a variável artifical {} da base."
+            self._output(msg.format(coluna+1),'[m]retbase')
             self.pivotar(linha,colunas[0])
+            self._output(self.tableau,'[m]retbase')
         else:
+            # se não for possível retirar a variável artificial da base
+            # diminuimos o tamanho da base pois teremos que eliminar linhas
+            # do tableau
+            self.base.remove(coluna)
             self.deletar.append(linha)
+            
             
     def solucao(self):
         '''Retorna o vetor solução do problema.'''
+        (M,N) = self.tableau.shape
         (m,n) = self.A.shape
-        x = np.zeros(m+n)
-        for i in range(m):
+        x = np.zeros(n)
+        for i in range(M-1):
             x[self.base[i]] = self.tableau[i,-1]
         return x
          
