@@ -1,5 +1,6 @@
 *.txt
 *.aux
-*.pdf
 *.log
 *.tex
+*.out
+*.gz
