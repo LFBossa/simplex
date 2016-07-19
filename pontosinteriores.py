@@ -13,7 +13,7 @@ import numpy as np
 
 np.set_printoptions(precision=3)
 
-class PrimalDualPF(object):
+class PrimalDualPF():
     '''
     Implementação do método Primal Dual Path Following para o problema 
     de programação linear 
@@ -42,7 +42,7 @@ class PrimalDualPF(object):
         self.s = np.array(s) 
         (m,n) = self.A.shape
         self.mu = np.dot(self.x,self.s)/n
-        self.gamma = 1e-2
+        self.gamma = 1e-3
         
     def update(self):
         (m,n) = self.A.shape
@@ -60,11 +60,7 @@ class PrimalDualPF(object):
         D2 = self.b - self.A.dot(self.x)
         D3 = -1*np.multiply(self.s,self.x)*np.ones(n) + \
                self.sigma*self.mu*np.ones(n)
-        self.RHS = np.concatenate((D1,D2,D3))
-#        RHS.write(str(np.asarray(self.RHS)))
-#        RHS.write('\n')
-#        LHS.write(str(np.asarray(self.jacobian)))
-#        LHS.write('\n')
+        self.RHS = np.concatenate((D1,D2,D3)) 
         
     def step(self):
         (m,n) = self.A.shape 
@@ -78,7 +74,7 @@ class PrimalDualPF(object):
         backtracking = True
         while backtracking:
             # sejam 
-            # (x_k+1,w_k+1,s_k+1) = (x_k,w_k,s_k) +alpha(px_k,pw_k,ps_k)
+            # (x_k+1,w_k+1,s_k+1) = (x_k,w_k,s_k) + alpha(px_k,pw_k,ps_k)
             novox = self.x + alpha*px
             novow = self.w + alpha*pw
             novos = self.s + alpha*ps 
@@ -101,8 +97,8 @@ class PrimalDualPF(object):
             if self.mu < TOL:
                 break
             else:
-                for k in range(2):
-                    self.caminho[k].append(self.x[k])
+                for j in range(2):
+                    self.caminho[j].append(self.x[j])
                 self.update()
                 self.step()
             
@@ -118,28 +114,4 @@ def validacao(vector,constante):
             break
     return test
     
-
-
-A = [[ 1, -2, -1,  0],
-     [-1, -1,  0, -1]]
-b = [-4,-4]
-c = [-1,-3]
-x = [1, 1, 3, 2]
-s = [1, 2, 1, 3]
-w = [1, 3]
-
-#for k in range(1,10):
-#    problema = PrimalDualPF(A,b,c,x,w,s)
-#    problema.solve(SIGMA=1/k,MAXSTEPS=200)
-#    print('sigma:', 1/k,';','mu:', problema.mu) 
-import matplotlib.pyplot as plt
  
-TOTAL_ITERATIONS = 25
-for i in range(1,TOTAL_ITERATIONS):
-    sigma = i/TOTAL_ITERATIONS
-    problema = PrimalDualPF(A,b,c,x,w,s) 
-    problema.solve(SIGMA=sigma)
-    plt.plot(problema.caminho[0],problema.caminho[1],'b',alpha=1-sigma,
-             hold=True)
-
-plt.show() 

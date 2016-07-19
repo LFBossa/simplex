@@ -281,6 +281,9 @@ lfbossa@gmail.com, 2016
             # se não for possível retirar a variável artificial da base
             # diminuimos o tamanho da base pois teremos que eliminar linhas
             # do tableau
+            msg = "Não é possível remover a variável artifical {} da base, "
+            msg += "teremos que deletar a linha correspondente."
+            self._output(msg.format(coluna+1),'[m]retbase')
             self.base.remove(coluna)
             self.deletar.append(linha)
 
@@ -299,9 +302,9 @@ lfbossa@gmail.com, 2016
         if source=='definirproblema':
             # vamos declarar as variáveis em jogo
             if 'screen' in self.output:
-                print('A = \n',self.A,'\n')
-                print('b = \n',self.b,'\n')
-                print('c = \n',self.c,'\n')
+                # assumimos que se o usuário quer a saida na tela, 
+                # ele já conhece as restrições e função objetivo
+                pass
 
             if 'latex' in self.output:
                 texto = '\\begin{eqnarray*} \\min & '+ bmatrix(self.c)  +'x \\\\'
@@ -426,7 +429,7 @@ class SemSolucoesViaveis(Exception):
 
 class ProblemaIlimitado(Exception):
     def __str__(self):
-        return "O -gradiente aponta em uma direção ilimitada do conjunto."
+        return "Solução Ilimitada: O -gradiente aponta em uma direção ilimitada do conjunto."
 
 
 class SimplexDual(SimplexPrimal):
